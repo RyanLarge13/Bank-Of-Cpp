@@ -5,28 +5,53 @@
 #include <vector>
 using namespace std;
 
-bool getData(int pin) {
+bool checkForExistingAccount() {
 	string filename = "bank-data.csv";
 	ifstream file(filename);
 	if (!file.is_open()) {
-		cerr << "We can't open our files at this time, please come back later" << endl;
 		return false;
+	} else {
+		return true;
 	}
-	if (file.is_open()) {
-		cout << "File open";
-	}
-	string line;
-	while (getline(file, line)) {
-		vector < string > row;
-		stringstream ss(line);
-		string value;
-		cout << line << endl;
-	}
-	return false;
 }
 
-int initialize() {
-	cout << "*** Bank of CPP *** " << endl << endl;
+void createAccount() {
+	
+}
+
+bool validatePin(int pin) {
+	string filename = "bank-data.csv";
+	ifstream file(filename);
+	if (!file.is_open()) {
+		ofstream newFile(filename);
+		newFile.close();
+		return false;
+	}
+	string line;
+	getline(file, line);
+	string value;
+	stringstream ss(line);
+	vector < string > row;
+	while(getline(ss, value, ',')) {
+		cout << endl << value << endl;
+		row.push_back(value);
+	}
+	if (row.size() > 0) {
+		string storedPin = row[1];
+		if (to_string(pin) == storedPin) {
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return false;
+	}
+	return true;
+}
+
+
+int getPin() {
+	cout << "*** Bank of CPP ***" << endl << endl;
 	bool validPin = false;
 	while (validPin == false) {
 		cout << "Enter your 4-digit pin: ";
@@ -49,8 +74,29 @@ int initialize() {
 	return 0;
 }
 
+void printMenu() {}
+
 int main() {
-	int pin = initialize();
-	bool getData(pin);
+	int tries = 0;
+	bool runPin = true;
+	bool accountExists = checkForExistingAccount();
+	while (!accountExists) {
+		createAccount();
+	}
+	while (runPin) {
+		if (tries == 3) {
+			cout << endl << "You're attempting your pin too many times for this session. Your account is now locked" << endl;
+			return 0;
+		}
+		int pin = getPin();
+		bool validPin = validatePin(pin);
+		if (validPin) {
+			printMenu();
+			runPin = false;
+		} else {
+			cout << endl << "The pin you have entered is invalid, try again" << endl;
+			tries++;
+		}
+	}
 	return 0;
 }
