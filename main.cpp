@@ -16,24 +16,20 @@ bool checkForExistingAccount() {
 }
 
 void createAccount() {
-	
+	string filename = "bank-data.csv";
+	ofstream newFile(filename);
+	newFile.close();
 }
 
 bool validatePin(int pin) {
 	string filename = "bank-data.csv";
 	ifstream file(filename);
-	if (!file.is_open()) {
-		ofstream newFile(filename);
-		newFile.close();
-		return false;
-	}
 	string line;
 	getline(file, line);
 	string value;
 	stringstream ss(line);
 	vector < string > row;
 	while(getline(ss, value, ',')) {
-		cout << endl << value << endl;
 		row.push_back(value);
 	}
 	if (row.size() > 0) {
@@ -47,6 +43,20 @@ bool validatePin(int pin) {
 		return false;
 	}
 	return true;
+}
+
+vector < string > getUserData() {
+	string filename = "bank-data.csv";
+	ifstream file(filename);
+	string line;
+	getline(file, line);
+	string value;
+	stringstream ss(line);
+	vector < string > row;
+	while(getline(ss, value, ',')) {
+		row.push_back(value);
+	}
+	return row;
 }
 
 
@@ -74,7 +84,22 @@ int getPin() {
 	return 0;
 }
 
-void printMenu() {}
+void printMenu() {
+	system("clear");
+	vector < string > userData = getUserData();
+	vector < string > options = {
+		{
+			"1. Print balance",
+			"2. Withdrawal",
+			"3. Deposite",
+		},
+	};
+	cout << endl << "*** Bank Of CPP ***" << endl;
+	cout << "Hello " << userData[0] << endl << "How can we assist you today?" << endl;
+	for (int i = 0; i < options.size(); ++i) {
+		cout << endl << options[i] << endl;
+	}
+}
 
 int main() {
 	int tries = 0;
@@ -94,7 +119,7 @@ int main() {
 			printMenu();
 			runPin = false;
 		} else {
-			cout << endl << "The pin you have entered is invalid, try again" << endl;
+			cout << endl << "The pin you have entered is invalid, try again" << endl << endl;
 			tries++;
 		}
 	}
