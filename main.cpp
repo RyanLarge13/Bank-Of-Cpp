@@ -3,7 +3,10 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 using namespace std;
+
+void printMenu();
 
 vector < string > getUserData() {
 	string filename = "bank-data.csv";
@@ -23,13 +26,45 @@ vector < string > getUserData() {
 }
 
 void printBalance() {
+	system("clear");
 	vector < string > rows = getUserData();
 	string balance = rows[2];
-	cout << endl << "Your current balance is: " << balance << endl << endl;
+	cout << "Your current balance is: " << balance << endl << endl;
 	printMenu();
 }
 
-void withdrawal() {}
+void withdrawal() {
+	vector < string > rows = getUserData();
+	string balanceString = rows[2];
+	cout << "Your current balance is " << balanceString << endl;
+	balanceString.erase(remove(balanceString.begin(), balanceString.end(), '$'), balanceString.end());
+	double currentBalance = stod(balanceString);
+	double amount;
+	cout << endl << "How much would you like to withdrawal? " << endl << endl << "Amount: ";
+	cin >> amount;
+	if (cin.fail()) {
+		cin.clear();
+		cin.ignore(numeric_limits < streamsize > ::max(), '\n');
+		system("clear");
+		cout << "Please enter a valid amount to withdrawal from your account" << endl << endl;
+		withdrawal();
+	}
+	double newAmount =
+	currentBalance - amount;
+	if (newAmount < 0) {
+		system("clear");
+		cout << "You cannot withdrawal this amount from your account. You have insufficient funds" << endl << endl;
+		withdrawal();
+	} else {
+		int yes;
+		int no;
+		int answer;
+		cout << endl << "confirm you want to withdrawal " << amount << " from your account" << endl << endl << "Your new balance will be " << fixed << setprecision(2) << newAmount << endl << endl << "Confirm 1 for yes, 2 for no: ";
+		cin >> answer;
+		//	cout << fixed << setprecision(2) << newAmount;
+	}
+}
+
 void deposit() {}
 void changeName() {}
 void changePin() {}
@@ -181,7 +216,10 @@ void printMenu() {
 			"2. Withdrawal",
 			"3. Deposite",
 			"4. Change Name",
-			"5. Change Pin"
+			"5. Change Pin",
+			"6. Logout",
+			"7. Delete Account",
+			"8. Exit"
 		},
 	};
 	cout << "*** Bank Of CPP ***" << endl;
@@ -209,6 +247,7 @@ void printMenu() {
 		printBalance();
 		break;
 		case 2:
+		system("clear");
 		withdrawal();
 		break;
 		case 3:
@@ -224,6 +263,7 @@ void printMenu() {
 }
 
 int main() {
+	system("clear");
 	int tries = 0;
 	bool runPin = true;
 	bool accountExists = checkForExistingAccount();
