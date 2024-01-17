@@ -25,6 +25,33 @@ vector < string > getUserData() {
 	return row;
 }
 
+void writeToFileAmount(vector < string > rows) {
+	string filename = "bank-data.csv";
+	ofstream file(filename);
+	if (!file.is_open()) {
+		throw runtime_error("We are unable to open our files");
+		return;
+	}
+	ostringstream combinedRowsString;
+	for (const auto& str: rows) {
+		combinedRowsString << str << ",";
+	}
+	string finalString = combinedRowsString.str();
+	if (finalString.empty()) {
+		throw runtime_error("Something went wrong writing to our files, please try again later");
+		return;
+	}
+	if (!finalString.empty()) {
+		finalString.pop_back();
+	}
+	file << finalString;
+	file.close();
+	system("clear");
+	cout << "Your new balance has now been updated: " << endl << endl;
+	printMenu();
+	return;
+}
+
 void printBalance() {
 	system("clear");
 	vector < string > rows = getUserData();
@@ -56,12 +83,38 @@ void withdrawal() {
 		cout << "You cannot withdrawal this amount from your account. You have insufficient funds" << endl << endl;
 		withdrawal();
 	} else {
-		int yes;
-		int no;
 		int answer;
-		cout << endl << "confirm you want to withdrawal " << amount << " from your account" << endl << endl << "Your new balance will be " << fixed << setprecision(2) << newAmount << endl << endl << "Confirm 1 for yes, 2 for no: ";
-		cin >> answer;
-		//	cout << fixed << setprecision(2) << newAmount;
+		bool confirmed = false;
+		while (!confirmed) {
+			cout << endl << "confirm you want to withdrawal " << amount << " from your account" << endl << endl << "Your new balance will be " << fixed << setprecision(2) << newAmount << endl << endl << "Confirm 1 for yes, 2 for no: ";
+			cin >> answer;
+			if (cin.fail()) {
+				cin.clear();
+				cin.ignore(numeric_limits < streamsize > ::max(), '\n');
+				system("clear");
+				cout << "Please confirm with 1 or 2." << endl << "1 for Yes" << endl << "2 for No" << endl << endl;
+			} else {
+				if (answer == 1) {
+					vector < string > newRows = rows;
+					ostringstream formattedAmount;
+					formattedAmount << fixed << setprecision(2) << newAmount;
+					newRows[2] = formattedAmount.str();
+					try {
+						writeToFileAmount(newRows);
+						confirmed = true;
+						return;
+					} catch (const exception& e) {
+						cout << endl << "Something went wrong with committing your withdrawal. Please give us time to fix the issue and come back later";
+						confirmed = true;
+					}
+				}
+				if (answer == 2) {
+					system("clear");
+					printMenu();
+					return;
+				}
+			}
+		}
 	}
 }
 
