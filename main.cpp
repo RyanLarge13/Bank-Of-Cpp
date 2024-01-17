@@ -8,6 +8,7 @@ using namespace std;
 bool checkForExistingAccount() {
 	string filename = "bank-data.csv";
 	ifstream file(filename);
+	// Check if valid data is within the file
 	if (!file.is_open()) {
 		return false;
 	} else {
@@ -19,6 +20,42 @@ void createAccount() {
 	string filename = "bank-data.csv";
 	ofstream newFile(filename);
 	newFile.close();
+	ifstream file(filename);
+	if (!file.is_open()) {
+		throw runtime_error("We are unable to open your files");
+	}
+	string username;
+	bool inputName = true;
+	while (inputName) {
+		cout << endl << "Let's create you a new account with our bank" << endl << endl;
+		cout << "Enter your name: ";
+		cin >> username;
+		if (cin.fail()) {
+			cout << endl <<"This username will not be accepted, please try a different username" << endl;
+			cin.clear();
+			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
+		} else {
+			inputName = false;
+		}
+	}
+	int pin;
+	bool inputPin = true;
+	while (inputPin) {
+		cout << endl << "Enter a 4-digit secret pin for your account: ";
+		cin >> pin;
+		if (cin.fail()) {
+			cout << endl << "Your pin must be a 4-digit number" << endl;
+			cin.clear();
+			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
+		} else {
+			string stringifiedPin = to_string(pin);
+			if (stringifiedPin.size() != 4) {
+				cout << endl << "Your new pin must be exactly 4-digits" << endl;
+			} else {
+				inputPin = false;
+			}
+		}
+	}
 }
 
 bool validatePin(int pin) {
@@ -48,6 +85,9 @@ bool validatePin(int pin) {
 vector < string > getUserData() {
 	string filename = "bank-data.csv";
 	ifstream file(filename);
+	if (!file.is_open()) {
+		throw runtime_error("We are unable to open your files");
+	}
 	string line;
 	getline(file, line);
 	string value;
@@ -86,7 +126,12 @@ int getPin() {
 
 void printMenu() {
 	system("clear");
-	vector < string > userData = getUserData();
+	vector < string > userData;
+	try {
+		userData = getUserData();
+	} catch (const exception& e) {
+		cout << e.what() << endl << "We are so sorry about this inconvenience. We are working on fixing the issue immediately. Please come back later." << endl;
+	}
 	vector < string > options = {
 		{
 			"1. Print balance",
@@ -106,7 +151,11 @@ int main() {
 	bool runPin = true;
 	bool accountExists = checkForExistingAccount();
 	while (!accountExists) {
-		createAccount();
+		try {
+			createAccount();
+		} catch (const exception& e) {
+			cout << e.what() << endl << "We are so sorry about this inconvenience. But we cannot create an account for you at this time. We are working on fixing the issue immediately. Please come back later." << endl;
+		}
 	}
 	while (runPin) {
 		if (tries == 3) {
