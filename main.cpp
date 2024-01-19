@@ -174,8 +174,37 @@ void changePin() {
 			cin.clear();
 			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
 			system("clear");
-			cout << "Invalid pintry again" << endl << endl
-			;
+			cout << "Invalid pin entry, try again" << endl << endl;
+		}
+		bool compare = to_string(confirmPin) == rows[1];
+		if (compare) {
+			confirmedPin = true;
+		} else {
+			system("clear");
+			cout << "The pin you have entered does not match. Please try again and input your current pin to authorize a change" << endl << endl;
+		}
+	}
+	bool settingNewPin = true;
+	while (settingNewPin) {
+		cout << endl << endl << "What would you like your new pin to be? ";
+		cin >> newPin;
+		if (cin.fail()) {
+			cin.clear();
+			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
+			system("clear");
+			cout << "Your pin must be a 4-digit number" << endl << endl;
+		} else {
+			if (to_string(newPin).size() != 4) {
+				cout << endl << endl << "Your pin must be 4 digits";
+			} else {
+				vector < string > newRows = rows;
+				rows[1] = newPin;
+				writeToFileAmount(newRows);
+				system("clear");
+				cout << "Your new pin has been set" << endl << endl;
+				printMenu();
+				settingNewPin = false;
+			}
 		}
 	}
 }
