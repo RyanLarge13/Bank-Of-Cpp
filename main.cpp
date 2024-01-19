@@ -27,7 +27,7 @@ vector < string > getUserData() {
 	return row;
 }
 
-void writeToFileAmount(vector < string > rows) {
+void writeToFileInfo(vector < string > rows) {
 	string filename = "bank-data.csv";
 	ofstream file(filename);
 	if (!file.is_open()) {
@@ -49,7 +49,7 @@ void writeToFileAmount(vector < string > rows) {
 	file << finalString;
 	file.close();
 	system("clear");
-	cout << "Your new balance has now been updated: " << endl << endl;
+	cout << "Your account has been updated" << endl << endl;
 	printMenu();
 	return;
 }
@@ -102,7 +102,7 @@ void withdrawalOrDeposite(bool operation) {
 					formattedAmount << fixed << setprecision(2) << newAmount;
 					newRows[2] = formattedAmount.str();
 					try {
-						writeToFileAmount(newRows);
+						writeToFileInfo(newRows);
 						confirmed = true;
 						return;
 					} catch (const exception& e) {
@@ -142,7 +142,7 @@ void changeName() {
 			vector < string > newRows = rows;
 			newRows[0] = newName;
 			try {
-				writeToFileAmount(newRows);
+				writeToFileInfo(newRows);
 				confirmed = true;
 				return;
 			} catch (const exception& e) {
@@ -199,7 +199,7 @@ void changePin() {
 			} else {
 				vector < string > newRows = rows;
 				rows[1] = newPin;
-				writeToFileAmount(newRows);
+				writeToFileInfo(newRows);
 				system("clear");
 				cout << "Your new pin has been set" << endl << endl;
 				printMenu();
@@ -222,6 +222,7 @@ void deleteAccount() {
 }
 
 void exitApp() {
+	system("clear");
 	return;
 }
 
