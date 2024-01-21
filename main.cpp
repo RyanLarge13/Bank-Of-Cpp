@@ -5,6 +5,8 @@
 #include <vector>
 #include <iomanip>
 #include <cstdio>
+#include <algorithm>
+#include <limits>
 using namespace std;
 
 void printMenu();
@@ -21,7 +23,7 @@ vector < string > getUserData() {
 	string value;
 	stringstream ss(line);
 	vector < string > row;
-	while(getline(ss, value, ',')) {
+	while (getline(ss, value, ',')) {
 		row.push_back(value);
 	}
 	return row;
@@ -35,7 +37,7 @@ void writeToFileInfo(vector < string > rows) {
 		return;
 	}
 	ostringstream combinedRowsString;
-	for (const auto& str: rows) {
+	for (const auto& str : rows) {
 		combinedRowsString << str << ",";
 	}
 	string finalString = combinedRowsString.str();
@@ -62,6 +64,38 @@ void printBalance() {
 	printMenu();
 }
 
+void printAllTransactions() {
+	vector <string> rows = getUserData();
+	string allTransactions = rows[3];
+	vector <string> transactions;
+	string transaction;
+	istringstream iss(allTransactions);
+	while (getline(iss, transaction, '|')) {
+		transactions.push_back(transaction);
+	}
+	vector<string> deposits;
+	vector <string> withdrawals;
+	for (const auto& amount : transactions) {
+		char operand = amount[0];
+		if (operand == '+') {
+			deposits.push_back(amount);
+		}
+		if (operand == '-') {
+			withdrawals.push_back(amount);
+		}
+	}
+	cout << "DEPOSITS" << endl << endl;
+	for (const auto& amount : deposits) {
+		cout << amount << endl;
+	}
+	cout << endl << "WITHDRAWALS" << endl << endl;
+	for (const auto& amount : withdrawals) {
+		cout << amount << endl;
+	}
+	cout << endl << "************" << endl << endl;
+	printMenu();
+}
+
 void withdrawalOrDeposite(bool operation) {
 	vector < string > rows = getUserData();
 	string balanceString = rows[2];
@@ -69,43 +103,56 @@ void withdrawalOrDeposite(bool operation) {
 	balanceString.erase(remove(balanceString.begin(), balanceString.end(), '$'), balanceString.end());
 	double currentBalance = stod(balanceString);
 	double amount;
-	cout << endl << "How much would you like to " << (operation ? "deposite? ": "withdrawal? ") << endl << endl << "Amount: ";
+	cout << endl << "How much would you like to " << (operation ? "deposit? " : "withdrawal? ") << endl << endl << "Amount: ";
 	cin >> amount;
 	if (cin.fail()) {
 		cin.clear();
 		cin.ignore(numeric_limits < streamsize > ::max(), '\n');
 		system("clear");
-		cout << "Please enter a valid amount to " << (operation ? "deposite ": "withdrawal ") << "from your account" << endl << endl;
+		cout << "Please enter a valid amount to " << (operation ? "deposit " : "withdrawal ") << "from your account" << endl << endl;
 		withdrawalOrDeposite(operation);
 	}
-	double newAmount = operation ? currentBalance + amount:
-	currentBalance - amount;
+	double newAmount = operation ? currentBalance + amount :
+		currentBalance - amount;
 	if (!operation && newAmount < 0) {
 		system("clear");
 		cout << "You cannot withdrawal this amount from your account. You have insufficient funds" << endl << endl;
 		withdrawalOrDeposite(operation);
-	} else {
+	}
+	else {
 		int answer;
 		bool confirmed = false;
 		while (!confirmed) {
-			cout << endl << "confirm you want to " << (operation ? "deposite ": "withdrawal ") << amount << (operation ? " to ": " from ") << "your account" << endl << endl << "Your new balance will be " << fixed << setprecision(2) << newAmount << endl << endl << "Confirm 1 for yes, 2 for no: ";
+			cout << endl << "confirm you want to " << (operation ? "deposit " : "withdrawal ") << amount << (operation ? " to " : " from ") << "your account" << endl << endl << "Your new balance will be " << fixed << setprecision(2) << newAmount << endl << endl << "Confirm 1 for yes, 2 for no: ";
 			cin >> answer;
 			if (cin.fail()) {
 				cin.clear();
 				cin.ignore(numeric_limits < streamsize > ::max(), '\n');
 				system("clear");
 				cout << "Please confirm with 1 or 2." << endl << "1 for Yes" << endl << "2 for No" << endl << endl;
-			} else {
+			}
+			else {
 				if (answer == 1) {
 					vector < string > newRows = rows;
+					string newTransaction;
 					ostringstream formattedAmount;
+					ostringstream transactionAmount;
 					formattedAmount << fixed << setprecision(2) << newAmount;
+					transactionAmount << fixed << setprecision(2) << amount;
+					if (operation) {
+						newTransaction = "+$" + transactionAmount.str() + "|";
+					}
+					if (!operation) {
+						newTransaction = "-$" + transactionAmount.str() + "|";
+					}
 					newRows[2] = formattedAmount.str();
+					newRows[3] = newRows[3] + newTransaction;
 					try {
 						writeToFileInfo(newRows);
 						confirmed = true;
 						return;
-					} catch (const exception& e) {
+					}
+					catch (const exception& e) {
 						cout << endl << "Something went wrong with committing your transaction. Please give us time to fix the issue and come back later";
 						confirmed = true;
 					}
@@ -145,15 +192,18 @@ void changeName() {
 				writeToFileInfo(newRows);
 				confirmed = true;
 				return;
-			} catch (const exception& e) {
+			}
+			catch (const exception& e) {
 				cout << endl << e.what() << "Something went wrong with committing your transaction. Please give us time to fix the issue and come back later";
 				confirmed = true;
 			}
-		} else if (answer == 2) {
+		}
+		else if (answer == 2) {
 			cout << endl << "Okay, canceling.. ";
 			confirmed = true;
 			return;
-		} else {
+		}
+		else {
 			system("clear");
 			cout << "Please confirm with 1 or 2." << endl << "1 for Yes" << endl << "2 for No" << endl << endl;
 		}
@@ -179,7 +229,8 @@ void changePin() {
 		bool compare = to_string(confirmPin) == rows[1];
 		if (compare) {
 			confirmedPin = true;
-		} else {
+		}
+		else {
 			system("clear");
 			cout << "The pin you have entered does not match. Please try again and input your current pin to authorize a change" << endl << endl;
 		}
@@ -193,10 +244,12 @@ void changePin() {
 			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
 			system("clear");
 			cout << "Your pin must be a 4-digit number" << endl << endl;
-		} else {
+		}
+		else {
 			if (to_string(newPin).size() != 4) {
 				cout << endl << endl << "Your pin must be 4 digits";
-			} else {
+			}
+			else {
 				vector < string > newRows = rows;
 				rows[1] = newPin;
 				writeToFileInfo(newRows);
@@ -231,11 +284,13 @@ bool checkForExistingAccount() {
 	ifstream file(filename);
 	if (!file.is_open()) {
 		return false;
-	} else {
+	}
+	else {
 		vector < string > data = getUserData();
 		if (data.size() == 4) {
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
 	}
@@ -248,7 +303,7 @@ bool writeToFile(string username, int pin) {
 		throw runtime_error("We are unable to open your files");
 		return false;
 	}
-	file << username << "," << to_string(pin) << ",$0.00" << ",d - $0.00";
+	file << username << "," << to_string(pin) << ",$0.00" << ",+$0.00|";
 	file.close();
 	return true;
 }
@@ -268,10 +323,11 @@ void createAccount() {
 		cout << "Enter your name: ";
 		cin >> username;
 		if (cin.fail()) {
-			cout << endl <<"This username will not be accepted, please try a different username" << endl;
+			cout << endl << "This username will not be accepted, please try a different username" << endl;
 			cin.clear();
 			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
-		} else {
+		}
+		else {
 			inputName = false;
 		}
 	}
@@ -284,11 +340,13 @@ void createAccount() {
 			cout << endl << "Your pin must be a 4-digit number" << endl;
 			cin.clear();
 			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
-		} else {
+		}
+		else {
 			string stringifiedPin = to_string(pin);
 			if (stringifiedPin.size() != 4) {
 				cout << endl << "Your new pin must be exactly 4-digits" << endl;
-			} else {
+			}
+			else {
 				inputPin = false;
 			}
 		}
@@ -296,7 +354,8 @@ void createAccount() {
 	bool fileWrite = false;
 	try {
 		fileWrite = writeToFile(username, pin);
-	} catch (const exception& e) {
+	}
+	catch (const exception& e) {
 		system("clear");
 		cout << e.what() << endl << "We are so sorry about this inconvenience. But we cannot create an account for you at this time. We are working on fixing the issue immediately. Please come back later." << endl;
 	}
@@ -304,7 +363,8 @@ void createAccount() {
 		system("clear");
 		cout << "Your new username is " << username << endl;
 		cout << "Your new pin is " << pin << endl;
-	} else {
+	}
+	else {
 		system("clear");
 		cout << endl << "We were unable to create you account. Please try again later." << endl;
 	}
@@ -318,17 +378,19 @@ bool validatePin(int pin) {
 	string value;
 	stringstream ss(line);
 	vector < string > row;
-	while(getline(ss, value, ',')) {
+	while (getline(ss, value, ',')) {
 		row.push_back(value);
 	}
 	if (row.size() > 0) {
 		string storedPin = row[1];
 		if (to_string(pin) == storedPin) {
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
-	} else {
+	}
+	else {
 		return false;
 	}
 	return true;
@@ -346,7 +408,8 @@ int getPin() {
 			cout << "Invalid pin. You must enter a 4-digit number, not including letters and special characters" << endl << endl;
 			cin.clear();
 			cin.ignore(numeric_limits < streamsize > ::max(), '\n');
-		} else {
+		}
+		else {
 			string pinString = to_string(pin);
 			int lengthOfPin = pinString.length();
 			if (lengthOfPin == 4) {
@@ -364,19 +427,21 @@ void printMenu() {
 	vector < string > userData;
 	try {
 		userData = getUserData();
-	} catch (const exception& e) {
+	}
+	catch (const exception& e) {
 		cout << e.what() << endl << "We are so sorry about this inconvenience. We are working on fixing the issue immediately. Please come back later." << endl;
 	}
 	vector < string > options = {
 		{
 			"1. Print balance",
-			"2. Withdrawal",
-			"3. Deposite",
-			"4. Change Name",
-			"5. Change Pin",
-			"6. Logout",
-			"7. Delete Account",
-			"8. Exit"
+			"2. Print transactions",
+			"3. Withdrawal",
+			"4. Deposit",
+			"5. Change Name",
+			"6. Change Pin",
+			"7. Logout",
+			"8. Delete Account",
+			"9. Exit"
 		},
 	};
 	cout << "*** Bank Of CPP ***" << endl;
@@ -394,35 +459,39 @@ void printMenu() {
 		cout << "Please enter a valid option" << endl << endl;
 		printMenu();
 	}
-	if (option < 1 || option > 8) {
+	if (option < 1 || option > 9) {
 		system("clear");
-		cout << "Please enter a valid option 1 - 5" << endl << endl;
+		cout << "Please enter a valid option 1 - 9" << endl << endl;
 		printMenu();
 	}
 	switch (option) {
-		case 1:
+	case 1:
 		printBalance();
 		break;
-		case 2:
+	case 2:
+		system("clear");
+		printAllTransactions();
+		break;
+	case 3:
 		system("clear");
 		withdrawalOrDeposite(false);
 		break;
-		case 3:
+	case 4:
 		withdrawalOrDeposite(true);
 		break;
-		case 4:
+	case 5:
 		changeName();
 		break;
-		case 5:
+	case 6:
 		changePin();
 		break;
-		case 6:
+	case 7:
 		logout();
 		break;
-		case 7:
+	case 8:
 		deleteAccount();
 		break;
-		case 8:
+	case 9:
 		exitApp();
 		break;
 	}
@@ -437,7 +506,8 @@ int main() {
 		try {
 			createAccount();
 			accountExists = true;
-		} catch (const exception& e) {
+		}
+		catch (const exception& e) {
 			cout << e.what() << endl << "We are so sorry about this inconvenience. But we cannot create an account for you at this time. We are working on fixing the issue immediately. Please come back later." << endl;
 		}
 	}
@@ -452,7 +522,8 @@ int main() {
 			system("clear");
 			printMenu();
 			runPin = false;
-		} else {
+		}
+		else {
 			system("clear");
 			cout << endl << "The pin you have entered is invalid, try again" << endl << endl;
 			tries++;
